@@ -1,0 +1,47 @@
+
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: drupal
+      POSTGRES_PASSWORD: drupal_password
+      POSTGRES_DB: drupal
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
+
+  drupal:
+    image: drupal:9-apache
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - drupal_modules:/var/www/html/modules
+      - drupal_profiles:/var/www/html/profiles
+      - drupal_themes:/var/www/html/themes
+      - drupal_sites:/var/www/html/sites
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://drupal:drupal_password@db:5432/drupal
+
+networks:
+  my_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+volumes:
+  db_data:
+  drupal_modules:
+  drupal_profiles:
+  drupal_themes:
+  drupal_sites:
